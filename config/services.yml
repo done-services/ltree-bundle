@@ -1,0 +1,39 @@
+services:
+    ltree_bundle.listener.doctrine_listener:
+        class: 'Pvsaintpe\LTreeBundle\Listener\LTreeListener'
+        arguments:
+            $attributeDriver: '@ltree_bundle.attribute.attribute_driver'
+            $propertyAccessor: '@property_accessor'
+        tags:
+            - { name: doctrine.event_listener, event: preUpdate }
+            - { name: doctrine.event_listener, event: onFlush }
+
+    ltree_bundle.attribute.attribute_driver:
+        class: 'Pvsaintpe\LTreeBundle\Attribute\Driver\AttributeDriver'
+    Pvsaintpe\LTreeBundle\Attribute\Driver\AttributeDriverInterface: '@ltree_bundle.attribute.attribute_driver'
+
+    ltree_bundle.treebuilder.treebuilderfromarrayresult:
+        class: 'Pvsaintpe\LTreeBundle\TreeBuilder\TreeBuilderFromArrayResult'
+        public: false
+
+    ltree_bundle.treebuilder.treebuilderfromobjectresult:
+        class: 'Pvsaintpe\LTreeBundle\TreeBuilder\TreeBuilderFromObjectResult'
+        arguments:
+            $propertyAccessor: '@property_accessor'
+        public: false
+
+    ltree_bundle.treebuilder.treebuilder:
+        class: 'Pvsaintpe\LTreeBundle\TreeBuilder\TreeBuilder'
+        arguments:
+            $arrayBuilder: '@ltree_bundle.treebuilder.treebuilderfromarrayresult'
+            $objectBuilder: '@ltree_bundle.treebuilder.treebuilderfromobjectresult'
+    Pvsaintpe\LTreeBundle\TreeBuilder\TreeBuilderInterface: '@ltree_bundle.treebuilder.treebuilder'
+
+    ltree_bundle.repository_factory:
+        class: 'Pvsaintpe\LTreeBundle\Repository\RepositoryFactory'
+        decorates: 'doctrine.orm.container_repository_factory'
+        arguments:
+            $inner: '@.inner'
+            $attributeDriver: '@ltree_bundle.attribute.attribute_driver'
+            $propertyAccessor: '@property_accessor'
+            $treeBuilder: '@ltree_bundle.treebuilder.treebuilder'
